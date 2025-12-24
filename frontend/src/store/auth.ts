@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { authApi, type UserInfo } from '@/api/auth'
+import { authApi, type UserInfo, type TokenResponse } from '@/api/auth'
 import { ElMessage } from 'element-plus'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -12,7 +12,7 @@ export const useAuthStore = defineStore('auth', () => {
   // 登录
   const login = async (username: string, password: string) => {
     try {
-      const response = await authApi.login({ username, password })
+      const response = await authApi.login({ username, password }) as unknown as TokenResponse
       token.value = response.access_token
       localStorage.setItem('token', response.access_token)
       
@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('auth', () => {
   // 获取用户信息
   const fetchUserInfo = async () => {
     try {
-      const info = await authApi.getCurrentUser()
+      const info = await authApi.getCurrentUser() as unknown as UserInfo
       userInfo.value = info
       localStorage.setItem('userInfo', JSON.stringify(info))
     } catch (error) {

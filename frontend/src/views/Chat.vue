@@ -65,7 +65,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { useConversationsStore } from '@/store/conversations'
 import { messagesApi } from '@/api/messages'
-import { tasksApi } from '@/api/tasks'
+import { tasksApi, type Task } from '@/api/tasks'
 import { poll } from '@/utils/polling'
 import MessageBubble from '@/components/MessageBubble.vue'
 import ChatInput from '@/components/ChatInput.vue'
@@ -130,7 +130,9 @@ const handleNewConversation = async () => {
   const title = `对话 ${new Date().toLocaleString('zh-CN')}`
   try {
     const conversation = await conversationsStore.createConversation(title)
-    currentConversationId.value = conversation.id
+    if (conversation) {
+      currentConversationId.value = conversation.id
+    }
     scrollToBottom()
   } catch (error) {
     ElMessage.error('创建对话失败')
@@ -155,7 +157,7 @@ const handleSendMessage = async (content: string) => {
         role: 'user',
         content
       }
-    )
+    ) as unknown as { task_id: string; status: string; message: string }
     
     // 立即显示用户消息（临时）
     const tempUserMessage: Message = {
@@ -172,9 +174,9 @@ const handleSendMessage = async (content: string) => {
     currentConversation.value.messages.push(tempUserMessage)
     
     // 开始轮询任务状态
-    const stopPolling = poll(
+    poll(
       async () => {
-        const task = await tasksApi.getTaskStatus(response.task_id)
+        const task = await tasksApi.getTaskStatus(response.task_id) as unknown as Task
         return task
       },
       {

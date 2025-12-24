@@ -9,7 +9,7 @@ export const useConversationsStore = defineStore('conversations', () => {
   // 获取所有对话
   const fetchConversations = async () => {
     try {
-      const data = await conversationsApi.getConversations()
+      const data = await conversationsApi.getConversations() as unknown as Conversation[]
       conversations.value = data
     } catch (error) {
       console.error('获取对话列表失败', error)
@@ -19,7 +19,7 @@ export const useConversationsStore = defineStore('conversations', () => {
   // 创建对话
   const createConversation = async (title: string) => {
     try {
-      const data = await conversationsApi.createConversation({ title })
+      const data = await conversationsApi.createConversation({ title }) as unknown as Conversation
       conversations.value.unshift(data)
       currentConversation.value = data
       return data
@@ -32,7 +32,7 @@ export const useConversationsStore = defineStore('conversations', () => {
   // 获取对话详情
   const fetchConversation = async (id: number) => {
     try {
-      const data = await conversationsApi.getConversation(id)
+      const data = await conversationsApi.getConversation(id) as unknown as Conversation
       currentConversation.value = data
       return data
     } catch (error) {

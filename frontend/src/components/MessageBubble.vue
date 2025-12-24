@@ -9,14 +9,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { Message } from '@/api/conversations'
 
 interface Props {
   message: Message
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const formatTime = (time: string) => {
   const date = new Date(time)
