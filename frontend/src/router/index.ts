@@ -25,6 +25,12 @@ const router = createRouter({
       name: 'Chat',
       component: () => import('@/views/Chat.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/admin',
+      name: 'Admin',
+      component: () => import('@/views/Admin.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })

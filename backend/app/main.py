@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.logging_config import setup_logging
 from app.core.database import init_db
-from app.api import auth, conversations, messages, tasks
+from app.api import auth, conversations, messages, tasks, attachments, admin
 
 # 配置日志
 logger = setup_logging()
@@ -60,6 +60,8 @@ app.include_router(auth.router, prefix=settings.API_V1_STR, tags=["auth"])
 app.include_router(conversations.router, prefix=settings.API_V1_STR, tags=["conversations"])
 app.include_router(messages.router, prefix=settings.API_V1_STR, tags=["messages"])
 app.include_router(tasks.router, prefix=settings.API_V1_STR, tags=["tasks"])
+app.include_router(attachments.router, prefix=settings.API_V1_STR, tags=["attachments"])
+app.include_router(admin.router, prefix=settings.API_V1_STR, tags=["admin"])
 
 
 @app.get("/")

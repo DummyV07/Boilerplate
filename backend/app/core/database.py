@@ -44,7 +44,7 @@ async def get_db() -> AsyncSession:
 async def init_db():
     """初始化数据库（创建表）"""
     # 导入所有模型以确保它们被注册到Base.metadata
-    from app.models import User, Conversation, Message, Task
+    from app.models import User, Conversation, Message, Task, Attachment
     
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

@@ -18,4 +18,5 @@ class User(Base):
     # 关系
     conversations = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
     tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
+    attachments = relationship("Attachment", back_populates="user", cascade="all, delete-orphan")
 

@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Chat API"
     API_V1_STR: str = "/api"
     
+    # 文件上传配置
+    UPLOAD_DIR: str = "uploads"  # 文件上传目录
+    MAX_FILE_SIZE: int = 100 * 1024 * 1024  # 最大文件大小（100MB）
+    ALLOWED_EXTENSIONS: str = ".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf,.doc,.docx,.txt,.md,.zip,.rar,.7z"  # 允许的文件扩展名
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
@@ -46,5 +51,8 @@ class Settings(BaseSettings):
 log_dir = Path("logs")
 log_dir.mkdir(exist_ok=True)
 
+# 创建上传目录
 settings = Settings()
+upload_dir = Path(settings.UPLOAD_DIR)
+upload_dir.mkdir(exist_ok=True)
 
