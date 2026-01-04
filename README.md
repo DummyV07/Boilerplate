@@ -49,7 +49,6 @@ my-awesome-project/
 接口响应慢通常有两种情况：I/O 密集型（等数据库、等第三方 API）和 计算密集型（处理图片、运行 AI 模型）。
 
 1. 异步框架选型（FastAPI）
-如果你还在用 Flask/Django 的同步模式，建议切换到 FastAPI。
 
 非阻塞 I/O：使用 async def 定义接口，配合 await 处理数据库操作。这样当一个请求在等待时，Python 进程可以去处理另一个请求。
 
