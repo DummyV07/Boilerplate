@@ -8,7 +8,15 @@ class Settings(BaseSettings):
     """应用配置"""
     
     # 数据库配置
-    DATABASE_URL: str = "sqlite+aiosqlite:///./chat.db"
+    # MySQL 连接格式: mysql+asyncmy://用户名:密码@主机:端口/数据库名
+    # 示例: mysql+asyncmy://root:password@localhost:3306/chat_db
+    DATABASE_URL: str = "mysql+asyncmy://root:123456@localhost:3306/chat_db"
+    
+    # 数据库连接池配置
+    DB_POOL_SIZE: int = 10  # 连接池大小
+    DB_MAX_OVERFLOW: int = 20  # 连接池最大溢出数
+    DB_POOL_RECYCLE: int = 3600  # 连接回收时间（秒）
+    DB_ECHO: bool = False  # 是否打印 SQL 语句（开发时可设为 True）
     
     # JWT配置
     SECRET_KEY: str = "your-secret-key-change-in-production"

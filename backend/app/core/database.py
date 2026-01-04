@@ -4,11 +4,15 @@ from sqlalchemy.orm import declarative_base
 from app.core.config import settings
 
 
-# 创建异步引擎
+# 创建异步引擎（针对 MySQL 优化）
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=False,
-    future=True
+    echo=settings.DB_ECHO,  # 是否打印 SQL
+    future=True,
+    pool_size=settings.DB_POOL_SIZE,  # 连接池大小
+    max_overflow=settings.DB_MAX_OVERFLOW,  # 最大溢出连接数
+    pool_recycle=settings.DB_POOL_RECYCLE,  # 连接回收时间
+    pool_pre_ping=True,  # 连接前检查连接是否有效（MySQL 推荐）
 )
 
 # 创建异步会话工厂

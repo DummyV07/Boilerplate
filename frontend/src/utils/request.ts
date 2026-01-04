@@ -2,8 +2,17 @@ import axios, { AxiosInstance, AxiosError } from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 
+// 获取环境变量，如果没有设置则使用默认值
+const getBaseURL = () => {
+  // 开发环境使用代理，生产环境使用环境变量
+  if (import.meta.env.DEV) {
+    return '/api'  // 开发环境使用 vite 代理
+  }
+  return import.meta.env.VITE_API_BASE_URL || '/api'
+}
+
 const request: AxiosInstance = axios.create({
-  baseURL: '/api',
+  baseURL: getBaseURL(),
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'

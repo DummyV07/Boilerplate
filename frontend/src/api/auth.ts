@@ -26,11 +26,12 @@ export interface TokenResponse {
 export const authApi = {
   // 登录
   login(form: LoginForm) {
-    const formData = new FormData()
-    formData.append('username', form.username)
-    formData.append('password', form.password)
+    // OAuth2PasswordRequestForm 需要 application/x-www-form-urlencoded 格式
+    const params = new URLSearchParams()
+    params.append('username', form.username)
+    params.append('password', form.password)
     
-    return request.post<TokenResponse>('/auth/login', formData, {
+    return request.post<TokenResponse>('/auth/login', params, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       }

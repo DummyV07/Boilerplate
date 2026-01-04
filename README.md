@@ -40,6 +40,117 @@ my-awesome-project/
 └── README.md
 ```
 
+
+## 💾 数据库配置（MySQL）
+
+项目已配置为使用 **MySQL** 数据库（替代 SQLite）。
+
+### 1. 安装 MySQL
+
+**macOS (使用 Homebrew):**
+```bash
+brew install mysql
+brew services start mysql
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt-get update
+sudo apt-get install mysql-server
+sudo systemctl start mysql
+```
+
+### 2. 创建数据库
+
+登录 MySQL 并创建数据库：
+
+```bash
+mysql -u root -p
+```
+
+在 MySQL 命令行中执行：
+
+```sql
+CREATE DATABASE chat_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+EXIT;
+```
+
+### 3. 配置环境变量
+
+复制 `.env.example` 并修改数据库连接信息：
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+编辑 `.env` 文件，修改 `DATABASE_URL`：
+
+```bash
+# 格式: mysql+asyncmy://用户名:密码@主机:端口/数据库名
+DATABASE_URL=mysql+asyncmy://root:你的密码@localhost:3306/chat_db
+```
+
+**示例：**
+```bash
+DATABASE_URL=mysql+asyncmy://root:mypassword@localhost:3306/chat_db
+```
+
+### 4. 安装依赖
+
+确保已安装 MySQL 异步驱动：
+
+```bash
+cd backend
+uv sync  # 或 pip install -r requirements.txt
+```
+
+依赖已在 `pyproject.toml` 中配置：
+- `asyncmy>=0.2.9` - MySQL 异步驱动
+
+### 5. 初始化数据库表
+
+启动后端服务时，数据库表会自动创建（通过 `init_db()` 函数）。
+
+或者手动初始化：
+
+```python
+# 在 Python 交互式环境中
+from app.core.database import init_db
+import asyncio
+
+asyncio.run(init_db())
+```
+
+### 6. 数据库连接池配置
+
+在 `.env` 文件中可以配置连接池参数：
+
+```bash
+DB_POOL_SIZE=10          # 连接池大小
+DB_MAX_OVERFLOW=20       # 最大溢出连接数
+DB_POOL_RECYCLE=3600     # 连接回收时间（秒）
+DB_ECHO=False            # 是否打印 SQL（开发时可设为 True）
+```
+
+### 7. 验证连接
+
+启动后端服务，检查日志是否显示 "Database initialized"：
+
+```bash
+cd backend
+uv run python run.py
+```
+
+如果看到数据库初始化成功的日志，说明连接正常。
+
+### 📝 注意事项
+
+1. **字符集**：数据库使用 `utf8mb4` 字符集，支持 emoji 和特殊字符
+2. **时区**：确保 MySQL 时区设置正确（建议使用 UTC）
+3. **权限**：确保数据库用户有创建表的权限
+4. **连接池**：生产环境建议调整连接池大小以适应并发需求
+
 ## 🐍 第二部分：Python 后端开发
 
 这里的python开发使用fastapi
@@ -91,6 +202,51 @@ async def get_data():
    - 跨页面、跨组件的全局数据（如用户信息、Token）必须存入 **Pinia**。
 3. **请求封装**：统一封装 Axios 拦截器，全局处理 401（登录过期）、500（服务器错误）等状态码。
    
+frontend/
+├── package.json          # 项目配置（类似 requirements.txt）
+├── vite.config.ts        # 构建工具配置
+├── index.html            # 入口 HTML（类似传统 HTML 的 <body>）
+└── src/
+    ├── main.ts           # 应用入口（类似传统 JS 的入口文件）
+    ├── App.vue           # 根组件（类似传统 HTML 的 <body> 容器）
+    │
+    ├── views/            # 页面级组件（类似传统的一个完整 HTML 页面）
+    │   ├── Login.vue     # 登录页
+    │   ├── Register.vue  # 注册页
+    │   └── Chat.vue      # 聊天页
+    │
+    ├── components/       # 可复用组件（类似传统的小功能块）
+    │   ├── ChatInput.vue      # 聊天输入框
+    │   ├── MessageBubble.vue  # 消息气泡
+    │   └── LoadingSpinner.vue  # 加载动画
+    │
+    ├── router/           # 路由配置（类似传统网站的页面跳转）
+    │   └── index.ts      # 定义哪些 URL 对应哪个页面
+    │
+    ├── store/            # 状态管理（类似全局变量，但更强大）
+    │   ├── auth.ts       # 用户登录状态
+    │   └── conversations.ts  # 对话数据
+    │
+    ├── api/              # API 请求封装（类似传统 JS 的 fetch/axios 调用）
+    │   ├── auth.ts       # 登录/注册接口
+    │   ├── conversations.ts
+    │   └── messages.ts
+    │
+    └── utils/            # 工具函数（类似传统 JS 的工具函数）
+        ├── request.ts    # 统一的 HTTP 请求封装
+        └── polling.ts    # 轮询工具
+
+
+
+目录/文件	作用	类比传统开发
+views/	完整页面（如登录页、聊天页）	一个完整的 HTML 页面
+components/	可复用的小组件（如按钮、输入框）	HTML 中的 <div> 片段，可在多处使用
+router/	定义 URL 和页面的对应关系	传统网站的页面跳转逻辑
+store/	全局状态（如用户信息、对话列表）	全局变量，但更安全、可追踪
+api/	封装后端接口调用	传统 JS 中的 fetch() 或 axios.get()
+utils/	工具函数	传统 JS 中的辅助函数
+
+
 
 ## 🚀 第四部分：生产环境部署 (Gunicorn + Nginx)
 

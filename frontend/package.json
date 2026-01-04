@@ -5,7 +5,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "preview": "vite preview"
+    "build:test": "vue-tsc && vite build --mode test",
+    "build:prod": "vue-tsc && vite build --mode production",
+    "preview": "vite preview",
+    "preview:test": "vite preview --mode test",
+    "preview:prod": "vite preview --mode production"
   },
   "dependencies": {
     "vue": "^3.3.4",
