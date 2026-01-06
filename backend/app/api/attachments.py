@@ -55,6 +55,8 @@ async def upload_attachment(
     file: UploadFile = File(...),
     description: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
+    source: Optional[str] = Form("direct_upload"),
+    is_shared: Optional[bool] = Form(False),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -105,6 +107,8 @@ async def upload_attachment(
             file_extension=file_extension,
             description=description,
             tags=tags,
+            source=source or "direct_upload",
+            is_shared=1 if is_shared else 0,
             user_id=current_user.id,
             recognition_status="pending"
         )
@@ -161,15 +165,20 @@ async def list_attachments(
     try:
         query = select(Attachment)
         
-        # 如果不是管理员，只能查看自己的文件
-        # 这里假设只有管理员可以查看所有文件，可以根据需要调整
-        # 暂时让用户只能查看自己的文件
-        if not user_id or user_id == current_user.id:
-            query = query.where(Attachment.user_id == current_user.id)
+        # 普通用户可以查看自己的文件和共享的文件
+        # 管理员可以查看所有文件
+        if current_user.is_admin:
+            # 管理员可以查看所有文件，如果指定了user_id则过滤
+            if user_id:
+                query = query.where(Attachment.user_id == user_id)
         else:
-            # 如果请求查看其他用户的文件，需要管理员权限
-            # 这里简化处理，只允许查看自己的文件
-            query = query.where(Attachment.user_id == current_user.id)
+            # 普通用户只能查看自己的文件或共享的文件
+            query = query.where(
+                or_(
+                    Attachment.user_id == current_user.id,
+                    Attachment.is_shared == 1
+                )
+            )
         
         # 搜索功能
         if search:
@@ -221,8 +230,8 @@ async def get_attachment(
             detail="附件不存在"
         )
     
-    # 检查权限：只能查看自己的文件
-    if attachment.user_id != current_user.id:
+    # 检查权限：可以查看自己的文件或共享的文件，管理员可以查看所有文件
+    if not current_user.is_admin and attachment.user_id != current_user.id and attachment.is_shared != 1:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="无权访问此附件"
@@ -249,8 +258,8 @@ async def download_attachment(
             detail="附件不存在"
         )
     
-    # 检查权限
-    if attachment.user_id != current_user.id:
+    # 检查权限：可以下载自己的文件或共享的文件，管理员可以下载所有文件
+    if not current_user.is_admin and attachment.user_id != current_user.id and attachment.is_shared != 1:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="无权下载此附件"
@@ -301,6 +310,8 @@ async def update_attachment(
         attachment.description = update_data.description
     if update_data.tags is not None:
         attachment.tags = update_data.tags
+    if update_data.is_shared is not None:
+        attachment.is_shared = 1 if update_data.is_shared else 0
     
     await db.commit()
     await db.refresh(attachment)

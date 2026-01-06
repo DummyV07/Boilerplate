@@ -7,6 +7,8 @@ class AttachmentBase(BaseModel):
     """附件基础Schema"""
     description: Optional[str] = Field(None, description="文件描述")
     tags: Optional[str] = Field(None, description="文件标签（逗号分隔）")
+    source: Optional[str] = Field("direct_upload", description="文件来源：chat, admin, api, direct_upload")
+    is_shared: Optional[bool] = Field(False, description="是否共享")
 
 
 class AttachmentCreate(AttachmentBase):
@@ -27,6 +29,8 @@ class AttachmentResponse(AttachmentBase):
     recognition_status: str
     recognition_error: Optional[str] = None
     user_id: int
+    source: str
+    is_shared: bool
     created_at: datetime
     updated_at: datetime
     
@@ -44,3 +48,4 @@ class AttachmentUpdate(BaseModel):
     """更新附件Schema"""
     description: Optional[str] = None
     tags: Optional[str] = None
+    is_shared: Optional[bool] = None

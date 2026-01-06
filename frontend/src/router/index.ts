@@ -31,6 +31,12 @@ const router = createRouter({
       name: 'Admin',
       component: () => import('@/views/Admin.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/feedback',
+      name: 'Feedback',
+      component: () => import('@/views/Feedback.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })

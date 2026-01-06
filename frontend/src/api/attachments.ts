@@ -14,6 +14,8 @@ export interface Attachment {
   recognition_error: string | null
   description: string | null
   tags: string | null
+  source: string
+  is_shared: boolean
   user_id: number
   created_at: string
   updated_at: string
@@ -33,6 +35,7 @@ export interface UploadAttachmentParams {
 export interface AttachmentUpdate {
   description?: string
   tags?: string
+  is_shared?: boolean
 }
 
 export interface AttachmentListParams {

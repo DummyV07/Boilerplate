@@ -15,6 +15,7 @@ export interface UserInfo {
   id: number
   username: string
   email: string
+  is_admin: boolean
   created_at: string
 }
 

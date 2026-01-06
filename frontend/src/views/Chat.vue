@@ -25,7 +25,19 @@
         </el-menu>
         
         <div class="sidebar-footer">
-          <el-button type="danger" size="small" @click="handleLogout">
+          <el-button 
+            v-if="authStore.userInfo?.is_admin" 
+            type="warning" 
+            size="small" 
+            @click="router.push('/admin')" 
+            style="margin-bottom: 10px; width: 100%"
+          >
+            管理后台
+          </el-button>
+          <el-button type="info" size="small" @click="handleGoToFeedback" style="margin-bottom: 10px; width: 100%">
+            意见反馈
+          </el-button>
+          <el-button type="danger" size="small" @click="handleLogout" style="width: 100%">
             退出登录
           </el-button>
         </div>
@@ -140,7 +152,7 @@ const handleNewConversation = async () => {
 }
 
 // 发送消息
-const handleSendMessage = async (content: string) => {
+const handleSendMessage = async (content: string, _attachments?: any[]) => {
   if (!currentConversation.value) {
     ElMessage.warning('请先创建或选择一个对话')
     return
@@ -221,6 +233,11 @@ const handleSendMessage = async (content: string) => {
   } finally {
     isSending.value = false
   }
+}
+
+// 前往反馈页面
+const handleGoToFeedback = () => {
+  router.push('/feedback')
 }
 
 // 退出登录

@@ -102,3 +102,15 @@ async def get_current_user(
     
     return user
 
+
+async def get_admin_user(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """获取当前管理员用户（依赖注入，需要管理员权限）"""
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions. Admin access required."
+        )
+    return current_user
+

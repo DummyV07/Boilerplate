@@ -26,6 +26,10 @@ class Attachment(Base):
     description = Column(Text, nullable=True, comment="文件描述")
     tags = Column(String(500), nullable=True, comment="文件标签（逗号分隔）")
     
+    # 文件来源和权限
+    source = Column(String(50), default="direct_upload", nullable=False, comment="文件来源：chat, admin, api, direct_upload")
+    is_shared = Column(Integer, default=0, nullable=False, comment="是否共享：0-不共享，1-共享")
+    
     # 用户关联
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True, comment="上传用户ID")
     

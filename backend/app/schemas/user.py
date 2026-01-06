@@ -17,6 +17,7 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     """用户响应模型"""
     id: int
+    is_admin: bool
     created_at: datetime
     
     class Config:

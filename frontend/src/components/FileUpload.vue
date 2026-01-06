@@ -6,6 +6,7 @@
       :headers="uploadHeaders"
       :data="uploadData"
       :before-upload="beforeUpload"
+      :on-change="handleFileChange"
       :on-success="handleSuccess"
       :on-error="handleError"
       :on-progress="handleProgress"
@@ -37,14 +38,32 @@
             v-model="file.description"
             placeholder="文件描述（可选）"
             size="small"
-            style="width: 200px; margin-right: 10px"
+            style="width: 180px; margin-right: 10px"
           />
           <el-input
             v-model="file.tags"
             placeholder="标签（可选，逗号分隔）"
             size="small"
-            style="width: 200px; margin-right: 10px"
+            style="width: 180px; margin-right: 10px"
           />
+          <el-select
+            v-model="file.source"
+            placeholder="文件来源"
+            size="small"
+            style="width: 140px; margin-right: 10px"
+          >
+            <el-option label="直接上传" value="direct_upload" />
+            <el-option label="聊天" value="chat" />
+            <el-option label="管理后台" value="admin" />
+            <el-option label="API" value="api" />
+          </el-select>
+          <el-checkbox
+            v-model="file.is_shared"
+            size="small"
+            style="margin-right: 10px"
+          >
+            共享
+          </el-checkbox>
           <el-button
             type="primary"
             size="small"
@@ -84,8 +103,7 @@
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { UploadFilled, Document } from '@element-plus/icons-vue'
-import { attachmentsApi } from '@/api/attachments'
-import type { UploadFile, UploadFiles, UploadInstance } from 'element-plus'
+import type { UploadInstance } from 'element-plus'
 
 interface FileItem {
   file: File
@@ -93,6 +111,8 @@ interface FileItem {
   size: number
   description: string
   tags: string
+  source: string
+  is_shared: boolean
   uploading: boolean
   progress: number
   status?: 'success' | 'exception'
@@ -103,6 +123,14 @@ interface FileItem {
   }
 }
 
+interface Props {
+  defaultSource?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  defaultSource: 'direct_upload'
+})
+
 const emit = defineEmits<{
   success: [attachment: any]
   error: [error: any]
@@ -112,8 +140,8 @@ const uploadRef = ref<UploadInstance>()
 const fileList = ref<FileItem[]>([])
 
 const uploadUrl = computed(() => {
-  // 不使用action，手动上传
-  return ''
+  // 不使用action，手动上传，但需要提供一个有效的URL以避免Element Plus报错
+  return '#'
 })
 
 const uploadHeaders = computed(() => {
@@ -126,11 +154,28 @@ const uploadHeaders = computed(() => {
 const uploadData = computed(() => ({} as any))
 
 const beforeUpload = (file: File) => {
+  // 阻止自动上传
+  return false
+}
+
+const handleFileChange = (uploadFile: any) => {
+  const file = uploadFile.raw
+  if (!file) return
+  
   // 检查文件大小（100MB）
   const maxSize = 100 * 1024 * 1024
   if (file.size > maxSize) {
     ElMessage.error('文件大小不能超过100MB')
-    return false
+    return
+  }
+
+  // 检查文件是否已经存在
+  const exists = fileList.value.some(item => 
+    item.file.name === file.name && item.file.size === file.size
+  )
+  if (exists) {
+    ElMessage.warning('文件已经添加')
+    return
   }
 
   // 添加到文件列表
@@ -140,11 +185,11 @@ const beforeUpload = (file: File) => {
     size: file.size,
     description: '',
     tags: '',
+    source: props.defaultSource,
+    is_shared: false,
     uploading: false,
     progress: 0
   })
-
-  return false // 阻止自动上传
 }
 
 const uploadFile = async (fileItem: FileItem, index: number) => {
@@ -161,11 +206,27 @@ const uploadFile = async (fileItem: FileItem, index: number) => {
       }
     }, 200)
 
-    const attachment = await attachmentsApi.upload({
-      file: fileItem.file,
-      description: fileItem.description || undefined,
-      tags: fileItem.tags || undefined
+    const formData = new FormData()
+    formData.append('file', fileItem.file)
+    if (fileItem.description) {
+      formData.append('description', fileItem.description)
+    }
+    if (fileItem.tags) {
+      formData.append('tags', fileItem.tags)
+    }
+    formData.append('source', fileItem.source || 'direct_upload')
+    formData.append('is_shared', fileItem.is_shared ? 'true' : 'false')
+
+    const token = localStorage.getItem('token')
+    const baseURL = import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_BASE_URL || '/api')
+    const axios = (await import('axios')).default
+    const response = await axios.post(`${baseURL}/attachments/upload`, formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
     })
+    const attachment = response.data
 
     clearInterval(progressInterval)
     fileItem.progress = 100
@@ -261,6 +322,8 @@ const formatFileSize = (bytes: number): string => {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .upload-result {
