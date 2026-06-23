@@ -1,21 +1,24 @@
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+"""数据库连接管理"""
+
+import os
+from collections.abc import AsyncGenerator
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
 from app.core.config import settings
 
+# 创建数据库目录
+os.makedirs(os.path.dirname(settings.database_url.split("///")[-1]), exist_ok=True)
 
-# 创建异步引擎（针对 MySQL 优化）
+# 创建异步引擎
 engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.DB_ECHO,  # 是否打印 SQL
+    settings.database_url,
+    echo=False,
     future=True,
-    pool_size=settings.DB_POOL_SIZE,  # 连接池大小
-    max_overflow=settings.DB_MAX_OVERFLOW,  # 最大溢出连接数
-    pool_recycle=settings.DB_POOL_RECYCLE,  # 连接回收时间
-    pool_pre_ping=True,  # 连接前检查连接是否有效（MySQL 推荐）
 )
 
-# 创建异步会话工厂
+# 创建会话工厂
 AsyncSessionLocal = async_sessionmaker(
     engine,
     class_=AsyncSession,
@@ -28,24 +31,10 @@ AsyncSessionLocal = async_sessionmaker(
 Base = declarative_base()
 
 
-async def get_db() -> AsyncSession:
-    """数据库会话依赖注入"""
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """获取数据库会话"""
     async with AsyncSessionLocal() as session:
         try:
             yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
         finally:
             await session.close()
-
-
-async def init_db():
-    """初始化数据库（创建表）"""
-    # 导入所有模型以确保它们被注册到Base.metadata
-    from app.models import User, Conversation, Message, Task, Attachment, Feedback
-    
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-

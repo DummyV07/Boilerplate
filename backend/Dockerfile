@@ -2,26 +2,20 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# 安装系统依赖
-RUN apt-get update && apt-get install -y \
-    gcc \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件
-COPY requirements.txt .
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# 安装Python依赖
-RUN pip install --no-cache-dir -r requirements.txt
+COPY pyproject.toml uv.lock requirements.txt ./
+RUN uv sync --frozen --no-dev
 
-# 复制应用代码
-COPY . .
+COPY app ./app
+COPY gunicorn_conf.py run.py ./
 
-# 创建日志目录
-RUN mkdir -p logs
+RUN mkdir -p data logs
 
-# 暴露端口
 EXPOSE 8000
 
-# 启动命令
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
+CMD ["uv", "run", "gunicorn", "app.main:app", "-c", "gunicorn_conf.py"]

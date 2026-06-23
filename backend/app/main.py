@@ -1,89 +1,53 @@
-import logging
+"""FastAPI 应用入口"""
+
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
+from app.api import items, tasks
 from app.core.config import settings
-from app.core.logging_config import setup_logging
-from app.core.database import init_db
-from app.api import auth, conversations, messages, tasks, attachments, admin, feedback
-
-# 配置日志
-logger = setup_logging()
+from app.core.database import Base, engine
+from app.core.logging_config import logger
+from app.workers.task_pool import TaskPool
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """应用生命周期管理"""
-    # 启动时初始化数据库
-    logger.info("Initializing database...")
-    await init_db()
-    logger.info("Database initialized")
-    
+    """应用生命周期：初始化数据库与进程池。"""
+    task_pool = TaskPool(num_workers=settings.task_pool_workers)
+    task_pool.start()
+    app.state.task_pool = task_pool
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Fullstack template backend started")
+
     yield
-    
-    # 关闭时清理资源
-    logger.info("Shutting down...")
+
+    task_pool.shutdown()
+    logger.info("Fullstack template backend stopped")
 
 
-# 创建FastAPI应用
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version="1.0.0",
-    lifespan=lifespan
+    title="Fullstack Template API",
+    description="FastAPI + Vue 3 全栈项目模版",
+    version="0.1.0",
+    lifespan=lifespan,
 )
 
-# 配置CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Vue开发服务器
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-# 异常处理中间件
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    """全局异常处理"""
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"}
-    )
-
-
-# 注册路由
-app.include_router(auth.router, prefix=settings.API_V1_STR, tags=["auth"])
-app.include_router(conversations.router, prefix=settings.API_V1_STR, tags=["conversations"])
-app.include_router(messages.router, prefix=settings.API_V1_STR, tags=["messages"])
-app.include_router(tasks.router, prefix=settings.API_V1_STR, tags=["tasks"])
-app.include_router(attachments.router, prefix=settings.API_V1_STR, tags=["attachments"])
-app.include_router(feedback.router, prefix=settings.API_V1_STR, tags=["feedback"])
-app.include_router(admin.router, prefix=settings.API_V1_STR, tags=["admin"])
-
-
-@app.get("/")
-async def root():
-    """根路径"""
-    return {"message": "AI Chat API", "version": "1.0.0"}
+app.include_router(items.router, prefix="/api")
+app.include_router(tasks.router, prefix="/api")
 
 
 @app.get("/health")
-async def health_check():
-    """健康检查"""
-    return {"status": "healthy"}
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level=settings.LOG_LEVEL.lower()
-    )
-
+async def health_check() -> dict[str, str]:
+    return {"status": "ok"}

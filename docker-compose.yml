@@ -1,48 +1,28 @@
-version: '3.8'
-
 services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: ai-chat-backend
+    container_name: fullstack-template-backend
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite+aiosqlite:///./chat.db
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
-      - OLLAMA_API_URL=http://ollama:11434
+      - DATABASE_URL=sqlite+aiosqlite:///./data/template.db
       - LOG_LEVEL=INFO
+      - HOST=0.0.0.0
+      - PORT=8000
     volumes:
-      - ./backend/chat.db:/app/chat.db
+      - ./backend/data:/app/data
       - ./backend/logs:/app/logs
-    depends_on:
-      - ollama
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: ai-chat-frontend
+    container_name: fullstack-template-frontend
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8000
+      - "3000:80"
+    depends_on:
+      - backend
     restart: unless-stopped
-
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ai-chat-ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
-
-volumes:
-  ollama_data:
-

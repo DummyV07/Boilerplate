@@ -1,5 +1,15 @@
+"""应用启动脚本"""
 import uvicorn
 
+from app.core.config import settings
+from app.core.logging_config import logger
+
 if __name__ == "__main__":
-    # 这里的 app.main:app 指的是：app文件夹 -> main.py文件 -> app对象(FastAPI实例)
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+    logger.info(f"启动开发服务器: {settings.host}:{settings.port}")
+    uvicorn.run(
+        "app.main:app",
+        host=settings.host,
+        port=settings.port,
+        reload=True,
+        log_level=settings.log_level.lower(),
+    )
