@@ -390,7 +390,6 @@ my-awesome-project/
 │   │   ├── workers/        # TaskPool 多进程任务
 │   │   └── main.py         # 应用入口
 │   ├── run.py              # 开发启动
-│   ├── tests/
 │   ├── pyproject.toml      # uv 依赖管理
 │   └── .env                # 环境变量
 ├── frontend/               # Vue 3 + Vite

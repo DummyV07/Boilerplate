@@ -46,12 +46,14 @@ make install-dev           # 安装全部依赖（含前端）
 
 默认 Python 解释器：`.venv/bin/python`（由 uv 自动管理）。
 
-## 代码质量
+## 验证方式
+
+模版不内置自动化测试工具，用以下方式验证即可：
 
 ```bash
-make check    # ruff check + ruff format --check + mypy（只检查不修改）
-make fix      # ruff --fix + ruff format（自动修复）
-make test     # pytest 后端测试
+make health-check          # 检查 /health、/metrics 等骨架接口
+curl localhost:8000/health # 手动冒烟测试
+make dev-backend           # 启动后浏览器访问前端
 ```
 
 ## 前端控制台 (frontend/)

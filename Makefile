@@ -1,20 +1,14 @@
-.PHONY: install install-dev check fix dev docker-build docker-up docker-down web-dev web-build web-check test deploy health-check
+.PHONY: install install-dev dev docker-build docker-up docker-down web-dev web-build web-check deploy health-check
+
+# 不生成 __pycache__ 字节码目录
+export PYTHONDONTWRITEBYTECODE := 1
 
 install:
-	cd backend && uv sync --no-dev
+	cd backend && uv sync
 
 install-dev:
-	cd backend && uv sync --extra dev
+	cd backend && uv sync
 	cd frontend && npm ci
-
-check:
-	cd backend && uv run ruff check app tests
-	cd backend && uv run ruff format --check app tests
-	cd backend && uv run mypy app
-
-fix:
-	cd backend && uv run ruff check --fix app tests
-	cd backend && uv run ruff format app tests
 
 dev:
 	@echo "启动后端 (8000) 与前端 (3000)，请分别在两个终端运行："
@@ -44,9 +38,6 @@ web-build:
 
 web-check:
 	cd frontend && npm run build
-
-test:
-	cd backend && uv run pytest tests/ -v
 
 deploy:
 	./scripts/deploy.sh
