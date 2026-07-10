@@ -11,6 +11,9 @@ ENV/
 *.egg-info/
 dist/
 build/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
 
 # 数据库
 *.db
@@ -35,9 +38,9 @@ logs/
 # 前端
 node_modules/
 dist/
-.DS_Store
 
 # 其他
 *.bak
 *.tmp
 archive/
+.DS_Store

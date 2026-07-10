@@ -1,4 +1,4 @@
-.PHONY: install install-dev check fix dev docker-build docker-up docker-down web-dev web-build web-check test
+.PHONY: install install-dev check fix dev docker-build docker-up docker-down web-dev web-build web-check test deploy health-check
 
 install:
 	cd backend && uv sync --no-dev
@@ -47,3 +47,9 @@ web-check:
 
 test:
 	cd backend && uv run pytest tests/ -v
+
+deploy:
+	./scripts/deploy.sh
+
+health-check:
+	./scripts/health-check.sh
